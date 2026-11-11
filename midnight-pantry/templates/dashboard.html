@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Home · Midnight Pantry{% endblock %}
+
+{% macro item_card(item, owner) %}
+  <div class="item">
+    <div class="item-icon">{{ categories.get(item.category, '📦') }}</div>
+    <div class="item-body">
+      <div class="item-name">{{ item.name }}</div>
+      <div class="item-meta">
+        <span class="pill">{{ item.category }}</span>
+        <span>{{ owner.name.split()[0] }} · {% if owner.block %}{{ owner.block }}, {% endif %}Room {{ owner.room_no }}</span>
+      </div>
+    </div>
+  </div>
+{% endmacro %}
+
+{% block content %}
+<section class="hero">
+  <p class="hello">Hey {{ user.name.split()[0] }} 👋</p>
+  <h1>What do you need tonight?</h1>
+  <p class="sub">{{ user.hostel_name }}{% if user.block %} · {{ user.block }}{% endif %} · Room {{ user.room_no }}</p>
+</section>
+
+<form class="search" method="get" action="{{ url_for('dashboard') }}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Maggi, sanitary pads, shampoo, a pen..." autocomplete="off">
+  {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+  <button class="btn" type="submit">Search</button>
+</form>
+
+<nav class="chips">
+  <a class="chip {{ 'active' if not category }}" href="{{ url_for('dashboard', q=q or None) }}">All</a>
+  {% for c, icon in categories.items() %}
+    <a class="chip {{ 'active' if category == c }}" href="{{ url_for('dashboard', category=c, q=q or None) }}">{{ icon }} {{ c }}</a>
+  {% endfor %}
+</nav>
+
+{% if searching %}
+  <h2 class="section-title">
+    {{ results|length }} {{ 'match' if results|length == 1 else 'matches' }} in your hostel
+  </h2>
+  {% for item, owner in results %}
+    {{ item_card(item, owner) }}
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🔦</div>
+      <p>Nobody in your hostel has this right now.</p>
+    </div>
+  {% endfor %}
+
+  {% if other_hostel_has %}
+    <div class="banner">
+      <strong>Good news:</strong> this is available in the {{ other_hostel_name }}.
+      For privacy, we don't show who has it.
+    </div>
+  {% endif %}
+{% else %}
+  <h2 class="section-title">Fresh on the shelf</h2>
+  {% for item, owner in recent %}
+    {{ item_card(item, owner) }}
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🛒</div>
+      <p>The shelf is empty. Be the first to share something!</p>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<details class="card share" {% if not my_items %}open{% endif %}>
+  <summary>➕ I have something to share</summary>
+  <form class="share-form" method="post" action="{{ url_for('add_item') }}">
+    <input type="text" name="name" placeholder="e.g. Maggi, shampoo sachet, pads" maxlength="80" required>
+    <select name="category">
+      {% for c, icon in categories.items() %}
+        <option value="{{ c }}">{{ icon }} {{ c }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Add to shelf</button>
+  </form>
+</details>
+
+{% if my_items %}
+  <h2 class="section-title">Your shelf</h2>
+  {% for item in my_items %}
+    <div class="item mine">
+      <div class="item-icon">{{ categories.get(item.category, '📦') }}</div>
+      <div class="item-body">
+        <div class="item-name">{{ item.name }}</div>
+        <div class="item-meta"><span class="pill">{{ item.category }}</span></div>
+      </div>
+      <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}">
+        <button class="remove" type="submit" title="Remove">Remove</button>
+      </form>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

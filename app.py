@@ -8,9 +8,16 @@ from flask import (Flask, abort, flash, redirect, render_template,
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 app.secret_key = "change-this-to-a-long-random-string-in-production"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hostel3.db"
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_size": 10,
+    "pool_timeout": 30,
+    "pool_recycle": 300,
+    "max_overflow": 20,
+}
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400  # Cache static files 24h
 db = SQLAlchemy(app)
 
 HOSTELS = ["Girls Hostel", "Boys Hostel"]
@@ -235,6 +242,7 @@ def signup():
         name     = request.form.get("name", "").strip()
         email    = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
         hostel   = request.form.get("hostel_name", "")
         block    = request.form.get("block", "").strip()
         room_no  = request.form.get("room_no", "").strip()
@@ -245,6 +253,8 @@ def signup():
             error = "Please choose your hostel."
         elif len(password) < 6:
             error = "Password must be at least 6 characters."
+        elif confirm_password and password != confirm_password:
+            error = "Passwords do not match. Please check and re-type."
         elif User.query.filter_by(email=email).first():
             error = "An account with this email already exists."
 
@@ -281,6 +291,39 @@ def login():
         error = "Wrong email or password."
 
     return render_template("login.html", error=error, form=request.form)
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if current_user():
+        return redirect(url_for("dashboard"))
+
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        hostel = request.form.get("hostel_name", "").strip()
+        room_no = request.form.get("room_no", "").strip()
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        user = User.query.filter_by(email=email).first()
+        if not email or not room_no or not hostel:
+            error = "Please provide your email, hostel, and room number."
+        elif not user:
+            error = "No account found with this college email."
+        elif user.hostel_name != hostel or user.room_no.strip().lower() != room_no.lower():
+            error = "Security verification failed: Hostel or Room Number does not match our records."
+        elif len(new_password) < 6:
+            error = "New password must be at least 6 characters long."
+        elif new_password != confirm_password:
+            error = "Passwords do not match. Please re-enter."
+        else:
+            user.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            flash("Password reset successfully! You can now log in with your new password. ✓")
+            return redirect(url_for("login"))
+
+    return render_template("forgot_password.html", error=error, hostels=HOSTELS, form=request.form)
 
 
 @app.route("/logout")
@@ -550,8 +593,10 @@ def settings():
         block    = request.form.get("block", "").strip()[:80]
         room_no  = request.form.get("room_no", "").strip()[:20]
         phone    = request.form.get("phone_number", "").strip()[:20]
-        upi      = request.form.get("upi_id", "").strip()[:100]
-        new_pass = request.form.get("new_password", "").strip()
+        upi          = request.form.get("upi_id", "").strip()[:100]
+        current_pass = request.form.get("current_password", "").strip()
+        new_pass     = request.form.get("new_password", "").strip()
+        confirm_pass = request.form.get("confirm_password", "").strip()
 
         if not name or not room_no:
             flash("Name and room number cannot be empty.")
@@ -571,10 +616,17 @@ def settings():
         user.upi_id = upi if upi else None
 
         if new_pass:
+            if user.password_hash and not check_password_hash(user.password_hash, current_pass):
+                flash("Current password is incorrect. Could not update password.")
+                return redirect(url_for("settings"))
             if len(new_pass) < 6:
                 flash("New password must be at least 6 characters.")
                 return redirect(url_for("settings"))
+            if new_pass != confirm_pass:
+                flash("New password and confirmation do not match.")
+                return redirect(url_for("settings"))
             user.password_hash = generate_password_hash(new_pass)
+            flash("Password updated successfully! ✓")
 
         db.session.commit()
         flash("Personal profile and payment details updated successfully! ✓")

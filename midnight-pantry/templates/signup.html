@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Sign up · Midnight Pantry{% endblock %}
+{% block content %}
+<section class="auth">
+  <div class="auth-intro">
+    <h1>Share what you have.<br><span class="accent">Find what you need.</span></h1>
+    <p>Create your profile once. Your hostel only sees its own shelf. The other hostel can only learn that an item exists, never who has it.</p>
+  </div>
+
+  <form class="card form" method="post">
+    <h2>Create your profile</h2>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+    <label>Name
+      <input type="text" name="name" value="{{ form.get('name', '') }}" required>
+    </label>
+
+    <label>Hostel
+      <select name="hostel_name" required>
+        {% for h in hostels %}
+          <option value="{{ h }}" {{ 'selected' if form.get('hostel_name') == h }}>{{ h }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <div class="row">
+      <label>Block <span class="opt">(optional)</span>
+        <input type="text" name="block" list="blocks" value="{{ form.get('block', '') }}" placeholder="Pick or type">
+      </label>
+      <label>Room no.
+        <input type="text" name="room_no" value="{{ form.get('room_no', '') }}" required>
+      </label>
+    </div>
+    <datalist id="blocks">
+      {% for b in blocks %}<option value="{{ b }}">{% endfor %}
+    </datalist>
+
+    <label>Email
+      <input type="email" name="email" value="{{ form.get('email', '') }}" required>
+    </label>
+    <label>Password
+      <input type="password" name="password" minlength="6" required>
+    </label>
+
+    <button class="btn" type="submit">Create profile</button>
+    <p class="switch">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+  </form>
+</section>
+{% endblock %}

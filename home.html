@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Hostel App</title></head>
+<body>
+    <h1>Hello, {{ user.name }}!</h1>
+    <p>{{ user.hostel_name }}{% if user.block %} - Block {{ user.block }}{% endif %} - Room {{ user.room_no }}</p>
+
+    <p><a href="/add_item">Add Item</a></p>
+    <p><a href="/search">Search</a></p>
+    <p><a href="/items">View All Items</a></p>
+    <p><a href="/logout">Logout</a></p>
+</body>
+</html>

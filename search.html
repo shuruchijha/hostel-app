@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>Search</title></head>
+<body>
+    <h1>What are you looking for?</h1>
+    <form method="GET">
+        <p>Item: <input type="text" name="q" value="{{ q }}"></p>
+        <p>Hostel:
+            <select name="hostel">
+                <option value="Girls Hostel" {% if hostel == 'Girls Hostel' %}selected{% endif %}>Girls Hostel</option>
+                <option value="Boys Hostel" {% if hostel == 'Boys Hostel' %}selected{% endif %}>Boys Hostel</option>
+            </select>
+        </p>
+        <button type="submit">Search</button>
+    </form>
+
+        {% if q and hostel %}
+        {% for item, user in results %}
+            <p>{{ item.name }} ({{ item.category }}) - {{ user.name }}, {% if user.block %}Block {{ user.block }}, {% endif %}Room {{ user.room_no }}</p>
+        {% else %}
+            <p>The item "{{ q }}" is not available in {{ hostel }}.</p>
+        {% endfor %}
+
+        {% if other_hostel_has %}
+            <p><b>The item "{{ q }}" is available in another hostel.</b> (The name is not visible.)</p>
+        {% endif %}
+    {% endif %}
+
+</body>
+</html>

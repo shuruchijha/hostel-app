@@ -90,6 +90,12 @@
 
     <!-- Main Auth Card -->
     <div class="auth-card">
+      <!-- Dual Auth Switcher Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <a href="{{ url_for('login') }}" class="auth-tab active" role="tab">🔑 Log in</a>
+        <a href="{{ url_for('signup') }}" class="auth-tab" role="tab">✨ Create Account</a>
+      </div>
+
       <h2>Log in to your account</h2>
 
       {% if error %}
@@ -98,23 +104,33 @@
 
       <form method="post" novalidate>
         <div class="field">
-          <label class="field-label" for="email">Email</label>
+          <label class="field-label" for="email">College Email</label>
           <input id="email" type="email" name="email"
                  value="{{ form.get('email', '') }}"
                  placeholder="you@college.edu" required autocomplete="email">
         </div>
 
         <div class="field" style="margin-top: 1.1rem;">
-          <label class="field-label" for="password">Password</label>
-          <input id="password" type="password" name="password"
-                 placeholder="Your password" required autocomplete="current-password">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+            <label class="field-label" for="password" style="margin-bottom: 0;">Password</label>
+            <a href="{{ url_for('forgot_password') }}" style="font-size: 0.82rem; color: var(--amber); text-decoration: none; font-weight: 600;">
+              Forgot password?
+            </a>
+          </div>
+          <div class="password-field-wrap">
+            <input id="password" type="password" name="password"
+                   placeholder="Your password" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show password" aria-label="Toggle password visibility">
+              👁️
+            </button>
+          </div>
         </div>
 
-        <button class="btn btn-primary btn-full" type="submit">Log in</button>
+        <button class="btn btn-primary btn-full" type="submit" style="margin-top: 1.5rem;">Log in</button>
       </form>
 
       <p class="auth-switch">
-        Don't have an account yet? <a href="{{ url_for('signup') }}" style="font-weight: 700;">Sign up free →</a>
+        Don't have an account yet? <a href="{{ url_for('signup') }}" style="font-weight: 700; color: var(--amber);">Sign up free →</a>
       </p>
     </div>
 

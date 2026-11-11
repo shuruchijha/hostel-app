@@ -140,6 +140,12 @@
     </div>
 
     <div class="auth-card">
+      <!-- Dual Auth Switcher Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <a href="{{ url_for('login') }}" class="auth-tab" role="tab">🔑 Log in</a>
+        <a href="{{ url_for('signup') }}" class="auth-tab active" role="tab">✨ Create Account</a>
+      </div>
+
       <h2><span>✨</span> Create your profile</h2>
 
       {% if error %}
@@ -193,20 +199,38 @@
                  required autocomplete="email">
         </div>
 
-        <!-- Password -->
+        <!-- Password with Show/Hide -->
         <div class="field field-spacing">
           <label class="field-label" for="password">Password</label>
-          <input id="password" type="password" name="password"
-                 placeholder="At least 6 characters" minlength="6"
-                 required autocomplete="new-password">
+          <div class="password-field-wrap">
+            <input id="password" type="password" name="password"
+                   placeholder="At least 6 characters" minlength="6"
+                   required autocomplete="new-password">
+            <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show password" aria-label="Toggle password visibility">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password with Show/Hide -->
+        <div class="field field-spacing">
+          <label class="field-label" for="confirm_password">Confirm Password</label>
+          <div class="password-field-wrap">
+            <input id="confirm_password" type="password" name="confirm_password"
+                   placeholder="Re-enter your password" minlength="6"
+                   required autocomplete="new-password">
+            <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('confirm_password', this)" title="Show password" aria-label="Toggle password visibility">
+              👁️
+            </button>
+          </div>
         </div>
 
         <!-- Submit Button -->
-        <button class="btn btn-primary btn-full" type="submit">Create profile</button>
+        <button class="btn btn-primary btn-full" type="submit" style="margin-top: 1.6rem;">Create profile</button>
       </form>
 
       <p class="auth-switch">
-        Already have an account? <a href="{{ url_for('login') }}"><strong>Log in</strong></a>
+        Already have an account? <a href="{{ url_for('login') }}" style="color: var(--amber); font-weight: 700;">Log in →</a>
       </p>
     </div>
 

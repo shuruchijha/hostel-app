@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Log in · Midnight Pantry{% endblock %}
+{% block content %}
+<section class="auth">
+  <div class="auth-intro">
+    <h1>Hungry at 1 AM?<br><span class="accent">Your hostel has you covered.</span></h1>
+    <p>Mess closed, shops closed, gates locked. Find out who nearby has the snack, the soap or the sanitary pad you need right now.</p>
+  </div>
+
+  <form class="card form" method="post">
+    <h2>Welcome back</h2>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <label>Email
+      <input type="email" name="email" value="{{ form.get('email', '') }}" required autofocus>
+    </label>
+    <label>Password
+      <input type="password" name="password" required>
+    </label>
+    <button class="btn" type="submit">Log in</button>
+    <p class="switch">New here? <a href="{{ url_for('signup') }}">Create your profile</a></p>
+  </form>
+</section>
+{% endblock %}

@@ -8,6 +8,15 @@
     margin: 2rem auto 4rem;
     padding: 0 1.5rem;
   }
+  @media (max-width: 768px) {
+    .profile-wrap { margin: 0.75rem auto 5rem; padding: 0 0.75rem; }
+    .profile-header-card { padding: 1.25rem; }
+    .profile-name { font-size: 1.25rem; }
+    .shelf-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  }
+  @media (max-width: 400px) {
+    .shelf-grid { grid-template-columns: 1fr; }
+  }
 
   /* Profile Header */
   .profile-header-card {

@@ -8,7 +8,9 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Fonts: display=swap so text shows before fonts load -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"></noscript>
   <style>
     /* ═══════════════════════════════════════════
        DESIGN TOKENS & PALETTE
@@ -316,6 +318,80 @@
       margin-left: 4px;
     }
 
+    /* ── AUTH TABS & DUAL SWITCHER ── */
+    .auth-tabs {
+      display: flex;
+      background: rgba(10, 9, 14, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 1.5rem;
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.65rem 0.5rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 9px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .auth-tab.active {
+      background: linear-gradient(135deg, rgba(245, 166, 35, 0.22), rgba(124, 92, 255, 0.18));
+      color: #ffffff;
+      border: 1px solid rgba(245, 166, 35, 0.4);
+      box-shadow: 0 0 14px rgba(245, 166, 35, 0.2);
+    }
+    .auth-tab:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ── PASSWORD SHOW / HIDE WRAPPER ── */
+    .password-field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .password-field-wrap input {
+      width: 100%;
+      padding-right: 46px !important;
+    }
+    .pwd-toggle-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      font-size: 1rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: var(--transition);
+      z-index: 2;
+    }
+    .pwd-toggle-btn:hover {
+      background: rgba(245, 166, 35, 0.18);
+      border-color: rgba(245, 166, 35, 0.45);
+      color: var(--amber);
+      transform: translateY(-50%) scale(1.06);
+    }
+
     .nav-spacer { flex: 1; }
 
     .nav-links {
@@ -581,7 +657,56 @@
     .mobile-bottom-nav {
       display: none;
     }
+
+    /* ─── COMPREHENSIVE MOBILE FIRST LAYOUT ─── */
     @media (max-width: 768px) {
+      /* Hide desktop nav links — mobile uses bottom nav */
+      .nav-links { display: none !important; }
+      .nav-tag-pill { display: none !important; }
+
+      /* Navbar smaller on mobile */
+      .nav-inner { height: 52px; gap: 0.75rem; }
+      .nav-logo { font-size: 1.15rem; gap: 0.4rem; }
+      .nav-logo .nav-brand-logo { width: 30px; height: 30px; border-radius: 9px; }
+      .nav { padding: 0 1rem; }
+
+      /* Buttons larger tap targets on mobile */
+      .btn { padding: .7rem 1.1rem; font-size: .9rem; min-height: 44px; }
+      .btn-sm { padding: .55rem .85rem; font-size: .82rem; min-height: 40px; }
+
+      /* Form inputs bigger on mobile for thumb comfort */
+      input, select, textarea { 
+        font-size: 16px !important; /* prevents iOS zoom on focus */
+        padding: .75rem .9rem;
+        min-height: 44px;
+      }
+
+      /* Floating badge hidden on mobile (bottom nav covers it) */
+      .quick-shelf-badge { display: none; }
+      .floating-tips-modal { right: 12px; width: calc(100vw - 24px); bottom: 80px; }
+
+      /* Page padding for mobile */
+      .page-wrapper { padding-bottom: 75px !important; }
+      .floating-tools-container { bottom: 74px !important; right: 12px !important; }
+
+      /* Auth pages fill screen properly */
+      .auth-wrap { padding: 1.25rem 1rem; align-items: flex-start; min-height: unset; }
+      .auth-box { max-width: 100%; }
+      .auth-card { padding: 1.5rem 1.25rem; }
+      .auth-hero-logo { width: 72px; height: 72px; border-radius: 18px; }
+      .auth-hero h1 { font-size: 1.4rem; }
+
+      /* Settings page full width */
+      .settings-wrap { margin: 1rem auto 5rem; padding: 0 1rem; }
+      .settings-card { padding: 1.4rem 1.1rem; }
+
+      /* Flashes full width */
+      .flashes { padding: 0 1rem; margin-top: 0.75rem; }
+
+      /* Password field wrap */
+      .password-field-wrap input { font-size: 16px !important; }
+
+      /* Bottom nav */
       .mobile-bottom-nav {
         display: flex;
         position: fixed;
@@ -589,7 +714,7 @@
         left: 0;
         right: 0;
         height: 60px;
-        background: rgba(13, 11, 18, 0.94);
+        background: rgba(13, 11, 18, 0.97);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border);
@@ -597,6 +722,8 @@
         justify-content: space-around;
         align-items: center;
         padding-bottom: env(safe-area-inset-bottom, 0px);
+        /* Extend to safe area on iPhone notch */
+        padding-bottom: max(env(safe-area-inset-bottom), 0px);
       }
       .mobile-nav-item {
         display: flex;
@@ -606,19 +733,27 @@
         gap: 2px;
         color: var(--text-muted);
         text-decoration: none;
-        font-size: 0.72rem;
+        font-size: 0.65rem;
         font-weight: 600;
         flex: 1;
         height: 100%;
-        transition: var(--transition);
+        transition: color .15s;
+        min-width: 0;
+        padding: 0 2px;
       }
-      .mobile-nav-item.active, .mobile-nav-item:hover {
-        color: var(--amber-bright);
-      }
+      .mobile-nav-item.active { color: var(--amber-bright); }
       .mobile-nav-icon {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
         position: relative;
         line-height: 1;
+        display: block;
+      }
+      .mobile-nav-label {
+        font-size: 0.62rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
       }
       .mobile-nav-badge {
         position: absolute;
@@ -626,20 +761,29 @@
         right: -8px;
         background: var(--amber);
         color: #0b0910;
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         font-weight: 800;
         border-radius: 999px;
         padding: 1px 5px;
-        min-width: 16px;
+        min-width: 15px;
         text-align: center;
       }
-      .page-wrapper {
-        padding-bottom: 75px !important;
-      }
-      .floating-tools-container {
-        bottom: 74px !important;
-        right: 16px !important;
-      }
+
+      /* Footer hide on mobile (bottom nav replaces it) */
+      footer { display: none; }
+    }
+
+    /* Extra small phones (< 380px) */
+    @media (max-width: 380px) {
+      .nav-logo .brand-highlight { display: none; }
+    }
+  </style>
+  <!-- Disable heavy background animations on mobile to improve performance -->
+  <style>
+    @media (max-width: 768px) {
+      body::before, body::after { display: none; }
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+      .item-card:hover, .request-card:hover, .shelf-card:hover, .comm-card:hover { transform: none; }
     }
   </style>
   {% block head %}{% endblock %}
@@ -794,6 +938,23 @@
     const modal = document.getElementById('tipsModal');
     if (modal) {
       modal.classList.toggle('active');
+    }
+  }
+
+  // Toggle password visibility (show/hide)
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === "password") {
+      input.type = "text";
+      btn.innerHTML = '🙈';
+      btn.setAttribute("title", "Hide password");
+      btn.setAttribute("aria-label", "Hide password");
+    } else {
+      input.type = "password";
+      btn.innerHTML = '👁️';
+      btn.setAttribute("title", "Show password");
+      btn.setAttribute("aria-label", "Show password");
     }
   }
 

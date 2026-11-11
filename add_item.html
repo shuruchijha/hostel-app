@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>Item Add Kar</title></head>
+<body>
+    <h1>I have these items</h1>
+    <form method="POST">
+        <p>Item: <input type="text" name="name" required></p>
+        <p>Category:
+            <select name="category">
+                <option>Food</option>
+                <option>Toiletries</option>
+                <option>Stationery</option>
+                <option>Medicine</option>
+                <option>Other</option>
+            </select>
+        </p>
+        <p>User:
+            <select name="user_id">
+                {% for u in users %}
+                    <option value="{{ u.id }}">{{ u.name }} - Room {{ u.room_no }}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>

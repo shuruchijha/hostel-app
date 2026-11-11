@@ -9,15 +9,21 @@
     padding: 0 1rem;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 140px);
+    height: calc(100vh - 125px);
     min-height: 500px;
   }
   @media (max-width: 768px) {
     .chat-view-container {
-      height: calc(100vh - 135px);
-      margin: 0.5rem auto 1rem;
-      padding: 0 0.75rem;
+      height: calc(100vh - 118px);
+      margin: 0;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0;
     }
+    .chat-top-header { padding: 0.65rem 0.85rem; border-radius: 10px; }
+    .chat-header-name { font-size: 0.92rem; }
+    .msg-bubble { font-size: 0.9rem; padding: 0.6rem 0.85rem; }
+    .msg-row { max-width: 88%; }
+    .chat-input-box input { font-size: 16px !important; }
   }
 
   /* Chat Top Bar */

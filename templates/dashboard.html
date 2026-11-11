@@ -7,29 +7,29 @@
   .search-wrap {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1rem;
     position: sticky;
-    top: 64px;
+    top: 52px;
     z-index: 90;
   }
   .search-inner {
     max-width: 1140px;
     margin: 0 auto;
     display: flex;
-    gap: .75rem;
+    gap: .6rem;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .search-field {
     flex: 1;
-    min-width: 200px;
+    min-width: 0;
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: .4rem;
     background: var(--surface2);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 0 .9rem;
+    padding: 0 .8rem;
     transition: var(--transition);
   }
   .search-field:focus-within {
@@ -40,16 +40,24 @@
   .search-field input {
     background: none;
     border: none;
-    padding: .65rem 0;
+    padding: .6rem 0;
     flex: 1;
+    min-width: 0;
   }
   .search-field input:focus { box-shadow: none; }
 
+  /* Horizontal scrolling category pills on mobile */
   .cat-pills {
     display: flex;
     gap: .4rem;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    max-width: 100%;
+    padding-bottom: 2px;
   }
+  .cat-pills::-webkit-scrollbar { display: none; }
   .cat-pill {
     background: var(--surface2);
     border: 1.5px solid var(--border);
@@ -62,6 +70,7 @@
     text-decoration: none;
     transition: var(--transition);
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .cat-pill:hover, .cat-pill.active {
     background: var(--amber);
@@ -75,10 +84,12 @@
     color: #0f0e13;
     font-size: .88rem;
     font-weight: 700;
-    padding: .6rem 1.2rem;
+    padding: .6rem 1rem;
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 40px;
   }
   .search-btn:hover { opacity: .88; }
 
@@ -86,39 +97,40 @@
   .dash {
     max-width: 1140px;
     margin: 0 auto;
-    padding: 1.5rem 1.5rem 4rem;
+    padding: 1.25rem 1rem 4rem;
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 2rem;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
     align-items: start;
   }
   @media (max-width: 860px) {
-    .dash { grid-template-columns: 1fr; }
+    .dash { grid-template-columns: 1fr; padding: 1rem 0.75rem 5rem; }
     .dash-sidebar { order: -1; }
   }
 
-  /* ── FEED TABS (Available vs Looking For) ── */
+  /* ── FEED TABS ── */
   .feed-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 1.5rem;
+    gap: 6px;
+    margin-bottom: 1.25rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
     padding: 4px;
-    flex-wrap: wrap;
   }
   .feed-tab {
     flex: 1;
-    min-width: 160px;
     text-align: center;
-    padding: 0.65rem 1rem;
+    padding: 0.6rem 0.5rem;
     border-radius: var(--radius-pill);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--text-muted);
     text-decoration: none;
     transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .feed-tab.active {
     background: var(--amber);
@@ -129,7 +141,6 @@
     color: var(--text);
     background: var(--surface2);
   }
-
   /* ── RESULTS NOTICE & HINTS ── */
   .results-notice {
     font-size: .85rem;
@@ -302,6 +313,25 @@
   }
   .greet h2 { font-size: 1.35rem; font-weight: 700; }
   .greet p  { font-size: .85rem; color: var(--text-muted); margin-top: .15rem; }
+
+  /* ── MOBILE DASHBOARD OVERRIDES ── */
+  @media (max-width: 768px) {
+    .search-wrap { top: 52px; padding: 0.6rem 0.75rem; }
+    .search-inner { flex-wrap: nowrap; gap: 0.5rem; }
+    .search-field input { font-size: 16px !important; }
+    .item-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .item-card { padding: 0.9rem; }
+    .item-emoji { font-size: 1.5rem; }
+    .item-name { font-size: 0.95rem; }
+    .item-price { font-size: 1.05rem; }
+    .greet h2 { font-size: 1.15rem; }
+    .greet p { font-size: 0.8rem; }
+    .feed-tab { font-size: 0.75rem; padding: 0.55rem 0.4rem; min-width: 0; }
+    .dash-sidebar .card { padding: 1rem 0.9rem; }
+  }
+  @media (max-width: 400px) {
+    .item-grid { grid-template-columns: 1fr; }
+  }
 </style>
 {% endblock %}
 
