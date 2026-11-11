@@ -343,12 +343,15 @@
 
     <!-- Welcome Greet Header -->
     <div class="greet">
-      <div>
-        <h2>Hey, {{ me.name.split()[0] }} 👋</h2>
-        <p>
-          {{ me.hostel_name }}{% if me.block %} · {{ me.block }}{% endif %}
-          · Room {{ me.room_no }} (Private to you)
-        </p>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Midnight Pantry" style="width: 48px; height: 48px; border-radius: 14px; object-fit: cover; border: 1.5px solid rgba(245, 166, 35, 0.4); box-shadow: 0 0 16px rgba(245, 166, 35, 0.25); flex-shrink: 0;">
+        <div>
+          <h2>Hey, {{ me.name.split()[0] }} 👋</h2>
+          <p>
+            {{ me.hostel_name }}{% if me.block %} · {{ me.block }}{% endif %}
+            · Room {{ me.room_no }} (Private to you)
+          </p>
+        </div>
       </div>
       <div style="display: flex; gap: 6px;">
         <a href="{{ url_for('chat_inbox') }}" class="btn btn-ghost btn-sm">

@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Midnight Pantry · Campus Night Essentials{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -276,23 +278,21 @@
       color: #fff;
       transform: scale(1.02);
     }
-    .nav-logo .moon-icon-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
+    .nav-logo .nav-brand-logo {
+      width: 40px;
+      height: 40px;
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(245, 166, 35, 0.25), rgba(124, 92, 255, 0.25));
-      border: 1px solid rgba(245, 166, 35, 0.4);
-      box-shadow: 0 0 16px rgba(245, 166, 35, 0.25);
-      font-size: 1.3rem;
-      animation: gentleSpin 10s ease-in-out infinite alternate;
+      object-fit: cover;
+      border: 1.5px solid rgba(245, 166, 35, 0.45);
+      box-shadow: 0 0 16px rgba(245, 166, 35, 0.35);
+      transition: var(--transition);
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
     }
-
-    @keyframes gentleSpin {
-      0% { transform: rotate(-5deg); }
-      100% { transform: rotate(5deg); }
+    .nav-logo:hover .nav-brand-logo {
+      box-shadow: 0 0 24px rgba(245, 166, 35, 0.7);
+      transform: scale(1.06) rotate(3deg);
     }
 
     .nav-logo .brand-highlight {
@@ -686,7 +686,7 @@
 <nav class="nav" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
     <a href="{{ url_for('dashboard') if me else url_for('login') }}" class="nav-logo">
-      <div class="moon-icon-badge">🌙</div>
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Midnight Pantry Logo" class="nav-brand-logo">
       <span class="brand-highlight">Midnight Pantry</span>
       <span class="nav-tag-pill">Hostel Hub</span>
     </a>
@@ -783,7 +783,10 @@
 
 <!-- ───── FOOTER ───── -->
 <footer>
-  <p>🌙 <strong>Midnight Pantry</strong> · Verified peer-to-peer hostel sharing · Safe, private & student-run</p>
+  <div style="display:inline-flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap;">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Midnight Pantry" style="width:20px; height:20px; border-radius:6px; vertical-align:middle; border:1px solid rgba(245,166,35,0.35);">
+    <span><strong>Midnight Pantry</strong> · Verified peer-to-peer hostel sharing · Safe, private & student-run</span>
+  </div>
 </footer>
 
 <script>

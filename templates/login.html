@@ -20,6 +20,25 @@
   .auth-hero h1 { font-size: 1.6rem; font-weight: 800; font-family: 'Space Grotesk', system-ui, sans-serif; }
   .auth-hero p  { font-size: .88rem; color: var(--text-muted); margin-top: .4rem; }
 
+  .auth-logo-showcase {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.1rem;
+  }
+  .auth-hero-logo {
+    width: 92px;
+    height: 92px;
+    border-radius: 24px;
+    object-fit: cover;
+    border: 2px solid rgba(245, 166, 35, 0.45);
+    box-shadow: 0 0 35px rgba(245, 166, 35, 0.4), 0 12px 30px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .auth-hero-logo:hover {
+    transform: scale(1.06) rotate(2deg);
+    box-shadow: 0 0 45px rgba(245, 166, 35, 0.6), 0 14px 34px rgba(0, 0, 0, 0.7);
+  }
+
   .auth-card {
     background: rgba(19, 17, 26, 0.88);
     backdrop-filter: blur(24px);
@@ -62,7 +81,9 @@
 
     <!-- Hero Header -->
     <div class="auth-hero">
-      <span class="moon-big">🌙</span>
+      <div class="auth-logo-showcase">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Midnight Pantry" class="auth-hero-logo">
+      </div>
       <h1>Midnight Pantry</h1>
       <p>Welcome back. The shelf is waiting.</p>
     </div>
