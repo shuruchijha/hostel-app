@@ -838,30 +838,40 @@ def delete_community(comm_id):
 #  BOOTSTRAP  (auto-migrate existing DB)
 # ════════════════════════════════════════════
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()     # creates any missing tables
-
-        # Add new columns to existing tables without destroying data
+# ════════════════════════════════════════════
+#  DATABASE INIT & MIGRATION ON STARTUP
+# ════════════════════════════════════════════
+with app.app_context():
+    db.create_all()     # creates any missing tables
+    try:
         from sqlalchemy import inspect as sa_inspect, text
         insp = sa_inspect(db.engine)
-        item_cols = {c["name"] for c in insp.get_columns("item")}
-        user_cols = {c["name"] for c in insp.get_columns("user")}
+        tables = insp.get_table_names()
+        if "item" in tables:
+            item_cols = {c["name"] for c in insp.get_columns("item")}
+            with db.engine.begin() as conn:
+                if "condition"  not in item_cols:
+                    conn.execute(text("ALTER TABLE item ADD COLUMN condition  VARCHAR(20) DEFAULT 'used'"))
+                if "price"        not in item_cols:
+                    conn.execute(text("ALTER TABLE item ADD COLUMN price        FLOAT       DEFAULT 0.0"))
+                if "payment_mode" not in item_cols:
+                    conn.execute(text("ALTER TABLE item ADD COLUMN payment_mode VARCHAR(30) DEFAULT 'both'"))
+                if "is_taken"     not in item_cols:
+                    conn.execute(text("ALTER TABLE item ADD COLUMN is_taken   BOOLEAN     DEFAULT 0"))
+                if "created_at" not in item_cols:
+                    conn.execute(text("ALTER TABLE item ADD COLUMN created_at DATETIME"))
+        if "user" in tables:
+            user_cols = {c["name"] for c in insp.get_columns("user")}
+            with db.engine.begin() as conn:
+                if "upi_id"       not in user_cols:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN upi_id       VARCHAR(100)"))
+                if "phone_number" not in user_cols:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN phone_number VARCHAR(20)"))
+    except Exception as e:
+        print(f"Migration note: {e}")
 
-        with db.engine.begin() as conn:
-            if "condition"  not in item_cols:
-                conn.execute(text("ALTER TABLE item ADD COLUMN condition  VARCHAR(20) DEFAULT 'used'"))
-            if "price"        not in item_cols:
-                conn.execute(text("ALTER TABLE item ADD COLUMN price        FLOAT       DEFAULT 0.0"))
-            if "payment_mode" not in item_cols:
-                conn.execute(text("ALTER TABLE item ADD COLUMN payment_mode VARCHAR(30) DEFAULT 'both'"))
-            if "is_taken"     not in item_cols:
-                conn.execute(text("ALTER TABLE item ADD COLUMN is_taken   BOOLEAN     DEFAULT 0"))
-            if "created_at" not in item_cols:
-                conn.execute(text("ALTER TABLE item ADD COLUMN created_at DATETIME"))
-            if "upi_id"       not in user_cols:
-                conn.execute(text("ALTER TABLE user ADD COLUMN upi_id       VARCHAR(100)"))
-            if "phone_number" not in user_cols:
-                conn.execute(text("ALTER TABLE user ADD COLUMN phone_number VARCHAR(20)"))
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
