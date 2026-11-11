@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Create Community · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .create-comm-wrap {
+    max-width: 520px;
+    margin: 3.5rem auto 5rem;
+    padding: 0 1.5rem;
+  }
+  .create-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .create-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-comm-wrap">
+  <div class="create-card">
+    <div style="font-size: 2.2rem; margin-bottom: 0.8rem;">🏰</div>
+    <h1 style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 0.4rem;">
+      Create a Community
+    </h1>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.8rem; line-height: 1.5;">
+      Start a group for your wing, floor, or friend circle. You'll receive a private invite link to share with them.
+    </p>
+
+    <form method="post" action="{{ url_for('create_community') }}">
+      <div class="field" style="margin-bottom: 1.5rem;">
+        <label class="field-label" for="comm-name">Community Name</label>
+        <input type="text" id="comm-name" name="name" 
+               placeholder="e.g. Krishnaveni 3rd Floor, Late Night Maggi Squad…" 
+               maxlength="100" required autofocus>
+        <span class="field-opt" style="margin-top: 4px;">Choose a name your friends will recognize.</span>
+      </div>
+
+      <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem; margin-bottom: 1.8rem; font-size: 0.82rem; color: var(--text-muted);">
+        🔒 <strong>Safe & Student-Only:</strong> Anyone with the invite link can join, but your personal room number is never shared publicly.
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" style="font-size: 0.95rem; padding: 0.85rem;">
+        Create & Get Invite Link →
+      </button>
+
+      <div style="text-align: center; margin-top: 1.2rem;">
+        <a href="{{ url_for('community') }}" style="font-size: 0.85rem; color: var(--text-muted);">
+          ← Cancel and return to communities
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

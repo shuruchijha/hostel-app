@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Campus Communities · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .comm-container {
+    max-width: 900px;
+    margin: 2rem auto 4rem;
+    padding: 0 1.5rem;
+  }
+  .comm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+  .comm-header h1 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .comm-header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+  
+  .comm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .comm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .comm-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+    opacity: 0.8;
+  }
+  .comm-card:hover {
+    border-color: rgba(245, 166, 35, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+  }
+  
+  .comm-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .comm-card-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .join-by-code-box {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .join-by-code-form {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 400px;
+  }
+  
+  .privacy-banner {
+    background: rgba(124, 92, 255, 0.08);
+    border: 1px solid rgba(124, 92, 255, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem;
+    font-size: 0.84rem;
+    color: #c7bfff;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comm-container">
+
+  <!-- Header -->
+  <div class="comm-header">
+    <div>
+      <h1>Campus Communities 👥</h1>
+      <p>Connect with your wing-mates, hostel friends & night owls safely.</p>
+    </div>
+    <a href="{{ url_for('create_community') }}" class="btn btn-primary">
+      <span>✨ Create Community</span>
+    </a>
+  </div>
+
+  <!-- Privacy Guard Guarantee -->
+  <div class="privacy-banner" role="note">
+    <span style="font-size: 1.2rem;">🔒</span>
+    <div>
+      <strong>Privacy Protection:</strong> Inside communities, members only see names, hostel, and block. 
+      <strong>Room numbers are NEVER exposed.</strong> Items available are only visible when visiting a student's profile.
+    </div>
+  </div>
+
+  <!-- Communities List -->
+  {% if communities %}
+    <h3 style="font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem;">
+      Your Active Communities ({{ communities|length }})
+    </h3>
+    <div class="comm-grid">
+      {% for comm in communities %}
+        <div class="comm-card">
+          <div>
+            <div class="comm-card-title">
+              <span>🏰</span>
+              <span>{{ comm.name }}</span>
+            </div>
+            <div class="comm-card-meta">
+              <span>👥 {{ comm.members|length }} verified student{% if comm.members|length != 1 %}s{% endif %}</span>
+              <span>👑 Created by {{ comm.creator.name.split()[0] }}{% if comm.creator_id == me.id %} (You){% endif %}</span>
+            </div>
+          </div>
+          <a href="{{ url_for('community_detail', comm_id=comm.id) }}" class="btn btn-ghost btn-sm" style="width: 100%;">
+            View Members & Invite Link →
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 3rem 1.5rem; margin-bottom: 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🤝</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No communities joined yet</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.5rem;">
+        Communities allow friends and hostel-mates to share essentials easily. 
+        Create one and invite your friends via WhatsApp or join an existing one using an invite code!
+      </p>
+      <a href="{{ url_for('create_community') }}" class="btn btn-primary">
+        Create Your First Community
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Join with invite code box -->
+  <div class="join-by-code-box">
+    <div>
+      <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text);">Have a Friend's Invite Code?</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+        Paste the 16-character invite code shared by your friend to join.
+      </p>
+    </div>
+    <form class="join-by-code-form" onsubmit="event.preventDefault(); const code = document.getElementById('joinCodeInput').value.trim(); if(code){ window.location.href='/community/join/' + encodeURIComponent(code); }">
+      <input type="text" id="joinCodeInput" placeholder="e.g. 4a8f9c1e2d7b6a5e" required style="padding: 0.6rem 0.9rem; font-size: 0.88rem;">
+      <button type="submit" class="btn btn-ghost btn-sm" style="white-space: nowrap;">Join →</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

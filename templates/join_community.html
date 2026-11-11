@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Join {{ comm.name }} · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .join-comm-wrap {
+    max-width: 520px;
+    margin: 4rem auto 6rem;
+    padding: 0 1.5rem;
+  }
+  .join-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .join-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="join-comm-wrap">
+  <div class="join-card">
+    <div style="font-size: 3.2rem; margin-bottom: 1rem;">🏰</div>
+    
+    <span class="badge badge-amber" style="margin-bottom: 1rem; font-size: 0.8rem;">Community Invitation</span>
+    
+    <h1 style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem;">
+      {{ comm.name }}
+    </h1>
+
+    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.8rem;">
+      You've been invited to join this campus group by <strong>{{ comm.creator.name }}</strong>.
+      <br>
+      <span style="font-size: 0.82rem; color: var(--text-faint);">Currently has {{ member_count }} student{% if member_count != 1 %}s{% endif %}</span>
+    </p>
+
+    <!-- Data Privacy Guarantee -->
+    <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1rem; margin-bottom: 2rem; text-align: left; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+      🔒 <strong>Privacy Assured:</strong> Joining lets you see who is in this community and view their shared shelf. Your room number remains private.
+    </div>
+
+    <form method="post" action="{{ url_for('join_community', code=comm.invite_code) }}">
+      <button type="submit" class="btn btn-primary btn-full" style="font-size: 1rem; padding: 0.9rem;">
+        ✓ Join {{ comm.name }}
+      </button>
+    </form>
+
+    <div style="margin-top: 1.5rem;">
+      <a href="{{ url_for('dashboard') }}" style="font-size: 0.85rem; color: var(--text-faint);">
+        Skip and go to dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

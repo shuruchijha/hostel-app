@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+{% block title %}{{ target.name }}'s Shelf · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .profile-wrap {
+    max-width: 900px;
+    margin: 2rem auto 4rem;
+    padding: 0 1.5rem;
+  }
+
+  /* Profile Header */
+  .profile-header-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-header-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+  }
+
+  .profile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+  .profile-user-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .profile-big-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--amber-glow);
+    border: 2px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--amber);
+  }
+  .profile-name {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .profile-sub {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  /* Items Grid */
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+  }
+  .shelf-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+  }
+  .shelf-card:hover {
+    border-color: rgba(245, 166, 35, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  }
+  .shelf-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+  .shelf-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .price-tag {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--amber-bright);
+    margin: 0.6rem 0;
+  }
+
+  .pay-option-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+  }
+
+  .upi-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 0.65rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    transition: var(--transition);
+  }
+  .upi-action-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
+
+  .upi-id-pill {
+    background: #0f0e15;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  .taken-badge {
+    background: rgba(255, 90, 95, 0.15);
+    border: 1px solid rgba(255, 90, 95, 0.3);
+    color: var(--danger);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrap">
+
+  <div style="margin-bottom: 1.2rem;">
+    <a href="{{ request.referrer or url_for('dashboard') }}" style="font-size: 0.85rem; color: var(--text-muted);">
+      ← Back
+    </a>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="profile-header-card">
+    <div class="profile-top">
+      <div class="profile-user-left">
+        <div class="profile-big-avatar">
+          {{ target.name[0].upper() }}
+        </div>
+        <div>
+          <h1 class="profile-name">{{ target.name }}</h1>
+          <div class="profile-sub">
+            <span>{{ target.hostel_name }}</span>
+            {% if target.block %}<span> · {{ target.block }}</span>{% endif %}
+            {% if is_own %}
+              <span style="color: var(--amber);"> · Room {{ target.room_no }} (Confidential to you)</span>
+            {% elif can_see_room_no(me, target) %}
+              <span style="color: var(--amber); font-weight: 700;"> · 🚪 Room {{ target.room_no }}</span>
+            {% else %}
+              <span style="color: var(--text-faint);"> · 🔒 Room confidential</span>
+            {% endif %}
+          </div>
+          {% if show_upi and (target.upi_id or target.phone_number) %}
+            <div style="font-size: 0.8rem; color: var(--text-faint); margin-top: 5px; display: flex; gap: 10px; flex-wrap: wrap;">
+              {% if target.phone_number %}
+                <span>📱 GPay/PhonePe: <strong style="color: var(--text);">{{ target.phone_number }}</strong></span>
+              {% endif %}
+              {% if target.upi_id %}
+                <span>⚡ UPI: <code style="color: var(--amber);">{{ target.upi_id }}</code></span>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center;">
+        {% if is_own %}
+          <a href="{{ url_for('settings') }}" class="btn btn-ghost btn-sm">
+            ⚙️ Manage Payment & Settings
+          </a>
+        {% else %}
+          <a href="{{ url_for('chat_detail', target_id=target.id) }}" class="btn btn-primary btn-sm">
+            💬 Chat with {{ target.name.split()[0] }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Items on Shelf -->
+  <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: space-between;">
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text);">
+      Available on Shelf ({{ available_items|length }})
+    </h2>
+    <span style="font-size: 0.8rem; color: var(--text-faint);">
+      🔒 Safe Handover: Meet in designated hostel common areas
+    </span>
+  </div>
+
+  {% if available_items %}
+    <div class="shelf-grid">
+      {% for item in available_items %}
+        <div class="shelf-card">
+          <div>
+            <div class="shelf-card-header">
+              <span style="font-size: 2rem;">{{ categories.get(item.category, '📦') }}</span>
+              <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
+                <span class="badge badge-muted">{{ item.category }}</span>
+                {% if item.condition == 'new_packed' %}
+                  <span class="badge badge-amber">🏷️ New / Packed</span>
+                {% elif item.condition == 'used' %}
+                  <span class="badge badge-muted">♻️ Used</span>
+                {% elif item.condition == 'free' %}
+                  <span class="badge badge-amber" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">🎁 Free</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="shelf-card-title">{{ item.name }}</div>
+
+            <!-- Price Display -->
+            <div class="price-tag">
+              {{ fmt_price(item) }}
+            </div>
+
+            <!-- Payment & Exchange Options -->
+            {% if item.condition == 'free' %}
+              <div class="pay-option-box" style="border-color: rgba(52, 211, 153, 0.3); background: rgba(16, 185, 129, 0.05);">
+                <div style="color: #34d399; font-weight: 700;">🎁 Free Community Share</div>
+                <div style="color: var(--text-muted); margin-top: 3px;">
+                  Coordinate with {{ target.name.split()[0] }} for handover.
+                </div>
+              </div>
+            {% else %}
+              <!-- Paid Item: UPI / Cash Details -->
+              <div class="pay-option-box">
+                <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; justify-content: space-between;">
+                  <span>Payment Options</span>
+                  <span style="font-size: 0.72rem; color: var(--amber);">
+                    {% if item.payment_mode == 'upi' %}📱 UPI Only
+                    {% elif item.payment_mode == 'cash' %}💵 Cash Only
+                    {% else %}📱 UPI or 💵 Cash{% endif %}
+                  </span>
+                </div>
+
+                {% if item.payment_mode in ['upi', 'both'] %}
+                  {% set pay_vpa = seller_payment_vpa(target) %}
+                  {% if pay_vpa %}
+                    <!-- 1-Click Universal UPI Deep Link (GPay, PhonePe, Paytm, BHIM) -->
+                    <a href="{{ upi_intent_url(pay_vpa, target.name, item.price, item.name) }}"
+                       class="upi-action-btn">
+                      <span>⚡ Open GPay / PhonePe / Paytm (₹{{ item.price|int }})</span>
+                    </a>
+                    
+                    {% if target.phone_number %}
+                      <div class="upi-id-pill">
+                        <span>📱 Phone: {{ target.phone_number }}</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ target.phone_number }}'); alert('Phone number copied: {{ target.phone_number }}');"
+                                style="background:none; border:none; color:var(--amber); font-size:0.75rem; cursor:pointer;">
+                          Copy
+                        </button>
+                      </div>
+                    {% endif %}
+
+                    {% if target.upi_id %}
+                      <div class="upi-id-pill">
+                        <span>⚡ UPI: {{ target.upi_id }}</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ target.upi_id }}'); alert('UPI ID copied: {{ target.upi_id }}');"
+                                style="background:none; border:none; color:var(--amber); font-size:0.75rem; cursor:pointer;">
+                          Copy
+                        </button>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <div style="margin-top: 6px; color: var(--text-faint); font-size: 0.78rem;">
+                      💡 Seller hasn't linked a UPI ID or Phone yet. Pay via Cash on handover.
+                    </div>
+                  {% endif %}
+                {% endif %}
+
+                {% if item.payment_mode in ['cash', 'both'] %}
+                  <div style="margin-top: 8px; color: var(--text-muted); font-size: 0.78rem; display: flex; align-items: center; gap: 5px;">
+                    <span>💵</span>
+                    <span>Cash on Handover: Pay ₹{{ item.price|int }} directly in person.</span>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <!-- Chat with Seller Button -->
+            {% if not is_own %}
+              <a href="{{ url_for('chat_detail', target_id=target.id, item_id=item.id) }}"
+                 class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 0.75rem; justify-content: center;">
+                💬 Chat with {{ target.name.split()[0] }}
+              </a>
+            {% endif %}
+          </div>
+
+          <!-- Owner Management Controls -->
+          {% if is_own %}
+            <div style="margin-top: 1.25rem; display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+              <form method="post" action="{{ url_for('mark_taken', item_id=item.id) }}" style="flex: 1;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; color: var(--amber);">
+                  ✓ Mark as Given
+                </button>
+              </form>
+
+              <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}"
+                    onsubmit="return confirm('Delete {{ item.name }}?');">
+                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 2.5rem; margin-bottom: 2.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📦</div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        No active items on {{ target.name.split()[0] }}'s shelf right now.
+      </p>
+    </div>
+  {% endif %}
+
+  <!-- Previously Given Away Section -->
+  {% if given_items %}
+    <div style="margin-top: 2.5rem; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-faint); display: flex; align-items: center; gap: 8px;">
+        <span>✓</span> Previously Given Away / Completed ({{ given_items|length }})
+      </h3>
+    </div>
+
+    <div class="shelf-grid">
+      {% for item in given_items %}
+        <div class="shelf-card" style="opacity: 0.65;">
+          <div>
+            <div class="shelf-card-header">
+              <span style="font-size: 1.8rem;">{{ categories.get(item.category, '📦') }}</span>
+              <span class="taken-badge">Taken / Given</span>
+            </div>
+            <div class="shelf-card-title">{{ item.name }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-faint); margin-top: 4px;">
+              {{ fmt_price(item) }} · {{ item.category }}
+            </div>
+          </div>
+
+          {% if is_own %}
+            <div style="margin-top: 1rem; display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 0.6rem;">
+              <form method="post" action="{{ url_for('mark_available', item_id=item.id) }}" style="flex: 1;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%;">
+                  ↩ Relist Item
+                </button>
+              </form>
+              <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}{{ comm.name }} · Community · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .comm-detail-wrap {
+    max-width: 900px;
+    margin: 2rem auto 4rem;
+    padding: 0 1.5rem;
+  }
+
+  .comm-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .comm-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+  }
+
+  .comm-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .comm-title-row h1 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Invite Box */
+  .invite-box {
+    background: var(--surface2);
+    border: 1px dashed rgba(245, 166, 35, 0.4);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .invite-input-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .invite-url-field {
+    flex: 1;
+    min-width: 240px;
+    background: #0f0e15;
+    border: 1px solid var(--border);
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--amber);
+    font-family: monospace;
+  }
+
+  /* Member List */
+  .member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .member-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    transition: var(--transition);
+  }
+  .member-card:hover {
+    border-color: rgba(245, 166, 35, 0.3);
+    background: #161320;
+  }
+  .member-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .member-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--amber-glow);
+    border: 1.5px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--amber);
+  }
+  .member-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .member-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #0b0910;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comm-detail-wrap">
+
+  <div style="margin-bottom: 1.2rem;">
+    <a href="{{ url_for('community') }}" style="font-size: 0.85rem; color: var(--text-muted);">
+      ← Back to all communities
+    </a>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="comm-hero">
+    <div class="comm-title-row">
+      <div>
+        <h1>
+          <span>🏰</span>
+          <span>{{ comm.name }}</span>
+        </h1>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">
+          👥 {{ members|length }} student{% if members|length != 1 %}s{% endif %} in this community · Created by <strong>{{ comm.creator.name }}</strong>
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div>
+        {% if is_creator %}
+          <form method="post" action="{{ url_for('delete_community', comm_id=comm.id) }}"
+                onsubmit="return confirm('Delete community {{ comm.name }}? This will remove all members from the group.')"
+                style="display: inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Delete Community</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('leave_community', comm_id=comm.id) }}"
+                onsubmit="return confirm('Leave this community?')"
+                style="display: inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Leave Community</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Invite Friends Section -->
+    <div class="invite-box">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <span style="font-weight: 700; font-size: 0.9rem; color: var(--amber); display: flex; align-items: center; gap: 6px;">
+          <span>🔗</span> Invite Your Friends to Join
+        </span>
+        <span style="font-size: 0.78rem; color: var(--text-faint);">Anyone with this link can join</span>
+      </div>
+
+      <div class="invite-input-row">
+        <input type="text" class="invite-url-field" id="inviteUrlInput" value="{{ invite_url }}" readonly>
+        
+        <button type="button" class="btn btn-primary btn-sm" onclick="copyInviteLink()">
+          📋 Copy Link
+        </button>
+        
+        <a href="https://api.whatsapp.com/send?text={{ ('Join my hostel community ' ~ comm.name ~ ' on Midnight Pantry: ' ~ invite_url)|urlencode }}"
+           target="_blank" rel="noopener noreferrer"
+           class="btn btn-ghost btn-sm" style="color: #25D366; border-color: rgba(37, 211, 102, 0.4);">
+          💬 WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Members List Section -->
+  <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text);">
+        Community Members ({{ members|length }})
+      </h2>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+        Click on any member's profile to see what items they have available on their shelf.
+      </p>
+    </div>
+  </div>
+
+  <!-- Privacy Security Note -->
+  <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+    <span>🛡️</span>
+    <span><strong>Data Protection:</strong> Room numbers are strictly hidden to prevent privacy leakage.</span>
+  </div>
+
+  <div class="member-list">
+    {% for membership, member in members %}
+      <div class="member-card">
+        <div class="member-left">
+          <div class="member-avatar">
+            {{ member.name[0].upper() }}
+          </div>
+          <div>
+            <div class="member-name">
+              <span>{{ member.name }}</span>
+              {% if member.id == me.id %}
+                <span class="badge badge-amber" style="padding: 2px 7px; font-size: 0.68rem;">You</span>
+              {% endif %}
+              {% if member.id == comm.creator_id %}
+                <span class="badge badge-muted" style="padding: 2px 7px; font-size: 0.68rem;" title="Community Creator">👑 Host</span>
+              {% endif %}
+            </div>
+            <div class="member-meta">
+              {{ member.hostel_name }}{% if member.block %} · {{ member.block }}{% endif %}
+              {% if can_see_room_no(me, member) %}
+                <span style="color: var(--amber); font-weight: 700;"> · 🚪 Room {{ member.room_no }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px;">
+          {% if member.id != me.id %}
+            <a href="{{ url_for('chat_detail', target_id=member.id) }}" class="btn btn-ghost btn-sm" style="padding: 4px 8px; font-size: 0.78rem;">
+              💬 Chat
+            </a>
+          {% endif %}
+          <a href="{{ url_for('profile', user_id=member.id) }}" class="btn btn-ghost btn-sm" style="padding: 4px 8px; font-size: 0.78rem;">
+            Shelf →
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Copy Toast Notification -->
+<div class="copy-toast" id="copyToast">✓ Invite Link Copied to Clipboard!</div>
+
+<script>
+  function copyInviteLink() {
+    const input = document.getElementById('inviteUrlInput');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+      const toast = document.getElementById('copyToast');
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    });
+  }
+</script>
+{% endblock %}

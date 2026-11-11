@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Messages & Handover Chats · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .chat-inbox-wrap {
+    max-width: 860px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1rem;
+  }
+
+  .inbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .inbox-header h1 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Privacy Notice */
+  .room-privacy-banner {
+    background: rgba(124, 92, 255, 0.08);
+    border: 1px solid rgba(124, 92, 255, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1.1rem;
+    font-size: 0.82rem;
+    color: #c7bfff;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.45;
+  }
+
+  /* Conversation Item */
+  .convo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+  }
+  .convo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+    transition: var(--transition);
+    gap: 1rem;
+  }
+  .convo-card:hover {
+    border-color: rgba(245, 166, 35, 0.4);
+    background: #171422;
+    transform: translateY(-1px);
+  }
+  .convo-card.has-unread {
+    border-left: 3px solid var(--amber);
+    background: rgba(245, 166, 35, 0.04);
+  }
+
+  .convo-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+  .convo-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+  .convo-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .convo-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .convo-name {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .convo-room {
+    font-size: 0.76rem;
+    color: var(--amber);
+    background: var(--amber-glow);
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+  }
+  .convo-snippet {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .convo-card.has-unread .convo-snippet {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .convo-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .convo-time {
+    font-size: 0.74rem;
+    color: var(--text-faint);
+  }
+
+  /* Quick Contacts Grid */
+  .contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.85rem;
+  }
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: var(--transition);
+  }
+  .contact-card:hover {
+    border-color: rgba(245, 166, 35, 0.3);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-inbox-wrap">
+
+  <div class="inbox-header">
+    <div>
+      <h1><span>💬</span> Messages & Chats</h1>
+      <p style="font-size: 0.86rem; color: var(--text-muted); margin-top: 3px;">
+        Coordinate item handovers, negotiate, and chat with fellow students.
+      </p>
+    </div>
+  </div>
+
+  <!-- Room Privacy Shield Banner -->
+  <div class="room-privacy-banner" role="note">
+    <span style="font-size: 1.25rem;">🔒</span>
+    <div>
+      <strong>Room Number Protection:</strong> Room numbers are visible to students within the same hostel (e.g. Girls Hostel members see Girls Hostel rooms). Boys or cross-hostel visitors <strong>cannot</strong> see girls' room numbers.
+    </div>
+  </div>
+
+  <!-- Active Conversations -->
+  <h2 style="font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.85rem;">
+    Active Chats ({% if conversations %}{{ conversations|length }}{% else %}0{% endif %})
+  </h2>
+
+  {% if conversations %}
+    <div class="convo-list">
+      {% for item in conversations %}
+        {% set partner = item.partner %}
+        {% set last_msg = item.last_message %}
+        <a href="{{ url_for('chat_detail', target_id=partner.id) }}"
+           class="convo-card {{ 'has-unread' if item.unread_count > 0 else '' }}">
+          <div class="convo-left">
+            <div class="convo-avatar">
+              {{ partner.name[0].upper() }}
+            </div>
+            <div class="convo-info">
+              <div class="convo-name-row">
+                <span class="convo-name">{{ partner.name }}</span>
+                {% if can_see_room_no(me, partner) %}
+                  <span class="convo-room">🚪 Room {{ partner.room_no }}</span>
+                {% endif %}
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-faint); margin-bottom: 2px;">
+                {{ partner.hostel_name }}{% if partner.block %} · {{ partner.block }}{% endif %}
+              </div>
+              <div class="convo-snippet">
+                {% if last_msg.sender_id == me.id %}You: {% endif %}{{ last_msg.text }}
+              </div>
+            </div>
+          </div>
+
+          <div class="convo-right">
+            <span class="convo-time">{{ last_msg.created_at.strftime('%I:%M %p') }}</span>
+            {% if item.unread_count > 0 %}
+              <span class="badge badge-amber" style="padding: 2px 7px; font-size: 0.68rem;">
+                {{ item.unread_count }} new
+              </span>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 2.5rem 1.5rem; margin-bottom: 2.5rem;">
+      <div style="font-size: 2.6rem; margin-bottom: 0.5rem;">📬</div>
+      <h3 style="font-size: 1.15rem; font-weight: 700;">No active conversations yet</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; max-width: 420px; margin-left: auto; margin-right: auto;">
+        You can start a chat with any giver on the shelf, or pick a fellow hostel student from below to start messaging!
+      </p>
+    </div>
+  {% endif %}
+
+  <!-- Start New Chat with Anyone -->
+  <h2 style="font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.85rem; margin-top: 2rem;">
+    Start a Chat with Anyone
+  </h2>
+
+  {% if quick_contacts %}
+    <div class="contacts-grid">
+      {% for contact in quick_contacts %}
+        <div class="contact-card">
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--amber); flex-shrink: 0;">
+              {{ contact.name[0].upper() }}
+            </div>
+            <div style="min-width: 0;">
+              <div style="font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ contact.name }}
+              </div>
+              <div style="font-size: 0.74rem; color: var(--text-faint);">
+                {{ contact.hostel_name }}{% if contact.block %} ({{ contact.block }}){% endif %}
+                {% if can_see_room_no(me, contact) %} · Rm {{ contact.room_no }}{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <a href="{{ url_for('chat_detail', target_id=contact.id) }}" class="btn btn-ghost btn-sm" style="padding: 4px 10px; font-size: 0.78rem;">
+            💬 Chat
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="font-size: 0.82rem; color: var(--text-faint);">
+      All available hostel and community contacts already have an active conversation with you.
+    </p>
+  {% endif %}
+
+</div>
+{% endblock %}

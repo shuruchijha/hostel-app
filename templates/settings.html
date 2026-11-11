@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile & Payment Settings · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  .settings-wrap {
+    max-width: 620px;
+    margin: 2rem auto 5rem;
+    padding: 0 1.25rem;
+  }
+  .settings-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .settings-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--purple-accent));
+  }
+
+  .block-room-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 14px !important;
+    align-items: flex-start !important;
+    margin-top: 1.1rem !important;
+    width: 100% !important;
+  }
+  .block-room-row .field {
+    flex: 1 1 50% !important;
+    margin-top: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .settings-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 1.8rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrap">
+  <div class="settings-card">
+    <div style="font-size: 2.2rem; margin-bottom: 0.6rem;">⚙️</div>
+    <h1 style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 1.65rem; font-weight: 800; color: var(--text); margin-bottom: 0.3rem;">
+      Edit Profile & Payments
+    </h1>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+      Update your personal hostel room details, contact number, or UPI payment info anytime.
+    </p>
+
+    <form method="post" action="{{ url_for('settings') }}">
+
+      <!-- ── SECTION 1: PERSONAL DETAILS ── -->
+      <div class="settings-section-title">
+        <span>👤</span> Personal Details
+      </div>
+
+      <!-- Name -->
+      <div class="field">
+        <label class="field-label" for="name">Your Name</label>
+        <input id="name" type="text" name="name" value="{{ user.name }}"
+               maxlength="80" required autocomplete="name">
+      </div>
+
+      <!-- Email (Read only for safety) -->
+      <div class="field" style="margin-top: 1.1rem;">
+        <label class="field-label" for="email">
+          <span>College Email</span>
+          <span class="field-opt">Primary Account ID</span>
+        </label>
+        <input id="email" type="email" value="{{ user.email }}" readonly
+               style="opacity: 0.6; cursor: not-allowed; background: #0f0d16;">
+      </div>
+
+      <!-- Hostel Selection -->
+      <div class="field" style="margin-top: 1.1rem;">
+        <label class="field-label" for="hostel_name">Hostel</label>
+        <select id="hostel_name" name="hostel_name" required onchange="handleHostelChange(this.value)">
+          {% for h in hostels %}
+            <option value="{{ h }}" {{ 'selected' if user.hostel_name == h }}>{{ h }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Block & Room No (Single Horizontal Line) -->
+      <div class="block-room-row">
+        <!-- Block -->
+        <div class="field" id="blockFieldWrap">
+          <label class="field-label" for="block">Block</label>
+          <input id="blockInput" type="text" name="block" value="{{ user.block or '' }}"
+                 placeholder="e.g. Krishnaveni, B-Wing…" maxlength="80">
+        </div>
+
+        <!-- Room No -->
+        <div class="field">
+          <label class="field-label" for="room_no">
+            <span>Room No</span>
+            <span class="field-opt">Protected</span>
+          </label>
+          <input id="room_no" type="text" name="room_no" value="{{ user.room_no }}"
+                 placeholder="e.g. 304" maxlength="20" required autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Privacy Note -->
+      <div style="font-size: 0.78rem; color: var(--text-faint); margin-top: 6px; line-height: 1.4;">
+        🔒 <strong>Room Privacy Rule:</strong> Visible only to fellow residents within your hostel. Never shown to boys or outsiders.
+      </div>
+
+
+      <!-- ── SECTION 2: PAYMENT & REDIRECT PREFERENCES ── -->
+      <div class="settings-section-title">
+        <span>💳</span> Payment & UPI Preferences
+      </div>
+
+      <!-- Mobile Number for GPay/PhonePe/Paytm -->
+      <div class="field">
+        <label class="field-label" for="phone_number">
+          <span>📱 Mobile Number (for GPay / PhonePe / Paytm / BHIM)</span>
+          <span class="field-opt">Recommended</span>
+        </label>
+        <input type="tel" id="phone_number" name="phone_number"
+               value="{{ user.phone_number or '' }}"
+               placeholder="e.g. 9876543210" maxlength="20">
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+          Buyers can tap 1 button on their phone to pay directly to this number via Google Pay, PhonePe, or Paytm.
+        </div>
+      </div>
+
+      <!-- UPI ID -->
+      <div class="field" style="margin-top: 1.1rem;">
+        <label class="field-label" for="upi_id">
+          <span>⚡ Custom UPI ID (VPA)</span>
+          <span class="field-opt">Optional</span>
+        </label>
+        <input type="text" id="upi_id" name="upi_id"
+               value="{{ user.upi_id or '' }}"
+               placeholder="e.g. yourname@okhdfcbank, 9876543210@paytm" maxlength="100">
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+          If provided, buyers can also pay via your custom virtual payment address.
+        </div>
+      </div>
+
+
+      <!-- ── SECTION 3: SECURITY (OPTIONAL) ── -->
+      <div class="settings-section-title">
+        <span>🔐</span> Security
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="new_password">
+          <span>New Password</span>
+          <span class="field-opt">Leave blank to keep current</span>
+        </label>
+        <input id="new_password" type="password" name="new_password"
+               placeholder="Enter at least 6 characters" autocomplete="new-password">
+      </div>
+
+
+      <!-- Save Button -->
+      <div style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary btn-full" style="padding: 0.9rem; font-size: 1rem;">
+          Save All Changes ✓
+        </button>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.25rem;">
+        <a href="{{ url_for('dashboard') }}" style="font-size: 0.85rem; color: var(--text-muted);">
+          ← Return to Dashboard
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  function handleHostelChange(val) {
+    const blockInput = document.getElementById('blockInput');
+    if (val === 'Girls Hostel') {
+      blockInput.placeholder = "e.g. Krishnaveni, Bhima, Munneru";
+    } else {
+      blockInput.placeholder = "e.g. Block A, Wing 2";
+    }
+  }
+</script>
+{% endblock %}

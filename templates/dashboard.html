@@ -1,0 +1,890 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Midnight Pantry{% endblock %}
+
+{% block head %}
+<style>
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+  }
+  .search-inner {
+    max-width: 1140px;
+    margin: 0 auto;
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-field {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 .9rem;
+    transition: var(--transition);
+  }
+  .search-field:focus-within {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-glow);
+  }
+  .search-field .icon { color: var(--text-faint); font-size: 1rem; flex-shrink: 0; }
+  .search-field input {
+    background: none;
+    border: none;
+    padding: .65rem 0;
+    flex: 1;
+  }
+  .search-field input:focus { box-shadow: none; }
+
+  .cat-pills {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .cat-pill {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: .78rem;
+    font-weight: 600;
+    padding: .3rem .85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .cat-pill:hover, .cat-pill.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #0f0e13;
+  }
+  .search-btn {
+    background: var(--amber);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #0f0e13;
+    font-size: .88rem;
+    font-weight: 700;
+    padding: .6rem 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .search-btn:hover { opacity: .88; }
+
+  /* ── MAIN DASHBOARD LAYOUT ── */
+  .dash {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .dash { grid-template-columns: 1fr; }
+    .dash-sidebar { order: -1; }
+  }
+
+  /* ── FEED TABS (Available vs Looking For) ── */
+  .feed-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    flex-wrap: wrap;
+  }
+  .feed-tab {
+    flex: 1;
+    min-width: 160px;
+    text-align: center;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+  .feed-tab.active {
+    background: var(--amber);
+    color: #0b0910 !important;
+    box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+  }
+  .feed-tab:not(.active):hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+
+  /* ── RESULTS NOTICE & HINTS ── */
+  .results-notice {
+    font-size: .85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .other-hostel-banner {
+    background: var(--amber-glow);
+    border: 1px solid rgba(245, 166, 35, 0.3);
+    border-radius: var(--radius-sm);
+    padding: .75rem 1rem;
+    font-size: .85rem;
+    color: var(--amber);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  /* ── ITEM CARDS & GRID ── */
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem;
+  }
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+  }
+  .item-card:hover {
+    border-color: rgba(245, 166, 35, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+  }
+  .item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0.6rem;
+  }
+  .item-emoji {
+    font-size: 2rem;
+  }
+  .item-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+  .item-price {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--amber-bright);
+    margin: 0.4rem 0;
+  }
+  .item-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 0.6rem;
+  }
+
+  /* ── REQUEST / NEED CARDS ── */
+  .request-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+    position: relative;
+  }
+  .request-card:hover {
+    border-color: rgba(124, 92, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  }
+  .request-card.is-urgent {
+    border-left: 3.5px solid var(--danger);
+  }
+  .request-user-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+  .request-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--amber);
+  }
+  .request-note-box {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.6rem;
+    font-style: italic;
+  }
+
+  /* ── SIDEBAR CARDS & FORMS ── */
+  .dash-sidebar .card + .card { margin-top: 1.25rem; }
+  .add-form .field + .field { margin-top: .75rem; }
+  .add-form .btn-primary { margin-top: 1rem; }
+
+  .my-items-list { display: flex; flex-direction: column; gap: .6rem; }
+  .my-item-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: .75rem;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .my-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .my-item-name {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .my-item-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* ── GREET ── */
+  .greet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .greet h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet p  { font-size: .85rem; color: var(--text-muted); margin-top: .15rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ───── SEARCH BAR ───── -->
+<div class="search-wrap">
+  <form class="search-inner" method="get" action="{{ url_for('dashboard') }}">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    
+    <div class="search-field">
+      <span class="icon">🔍</span>
+      <input type="search" name="q" value="{{ q }}"
+             placeholder="Search {{ 'requests…' if tab == 'requests' else 'the shelf…' }} Maggi, charger, pad, medicine…"
+             aria-label="Search items">
+    </div>
+
+    <!-- Category Pills -->
+    <div class="cat-pills" role="list">
+      <a href="{{ url_for('dashboard', q=q, tab=tab) }}"
+         class="cat-pill {{ 'active' if not category }}"
+         role="listitem">All</a>
+      {% for cat, emoji in categories.items() %}
+        <a href="{{ url_for('dashboard', q=q, category=cat, tab=tab) }}"
+           class="cat-pill {{ 'active' if category == cat }}"
+           role="listitem">{{ emoji }} {{ cat }}</a>
+      {% endfor %}
+    </div>
+
+    <button class="search-btn" type="submit">Search</button>
+  </form>
+</div>
+
+<!-- ───── MAIN CONTENT & SIDEBAR ───── -->
+<div class="dash">
+
+  <!-- LEFT: Items / Search Results / Requests -->
+  <main>
+
+    <!-- Welcome Greet Header -->
+    <div class="greet">
+      <div>
+        <h2>Hey, {{ me.name.split()[0] }} 👋</h2>
+        <p>
+          {{ me.hostel_name }}{% if me.block %} · {{ me.block }}{% endif %}
+          · Room {{ me.room_no }} (Private to you)
+        </p>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <a href="{{ url_for('chat_inbox') }}" class="btn btn-ghost btn-sm">
+          💬 Chats
+          {% if unread_chat_count %}
+            <span class="badge badge-amber" style="padding: 1px 5px; font-size: 0.68rem;">{{ unread_chat_count }}</span>
+          {% endif %}
+        </a>
+      </div>
+    </div>
+
+    <!-- Top Feed Tabs: Available Shelf vs Who's Looking for What -->
+    <div class="feed-tabs" role="tablist">
+      <a href="{{ url_for('dashboard', tab='shelf', q=q, category=category) }}"
+         class="feed-tab {{ 'active' if tab != 'requests' else '' }}" role="tab">
+        🛍️ Available on Shelf ({{ results|length if searching else recent|length }})
+      </a>
+      <a href="{{ url_for('dashboard', tab='requests', q=q, category=category) }}"
+         class="feed-tab {{ 'active' if tab == 'requests' else '' }}" role="tab">
+        📢 Who's Looking for What ({{ active_requests|length }})
+      </a>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 2: WHO'S LOOKING FOR WHAT (CAMPUS REQUESTS)
+         ══════════════════════════════════════════ -->
+    {% if tab == 'requests' %}
+
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text);">
+          📢 Active Student Needs & Requests · {{ me.hostel_name }}
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+          Even if you haven't uploaded an item to your shelf, you can help a fellow hostel mate who needs it!
+        </p>
+      </div>
+
+      {% if active_requests %}
+        <div class="item-grid">
+          {% for req, requester in active_requests %}
+            <div class="request-card {{ 'is-urgent' if req.urgency == 'urgent' else '' }}">
+              <div>
+                <!-- Requester user header -->
+                <div class="request-user-row">
+                  <div class="request-user-avatar">
+                    {{ requester.name[0].upper() }}
+                  </div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text);">
+                      {{ requester.name }}
+                      {% if requester.id == me.id %}
+                        <span class="badge badge-amber" style="font-size: 0.65rem; padding: 1px 6px;">You</span>
+                      {% endif %}
+                    </div>
+                    <div style="font-size: 0.74rem; color: var(--text-faint);">
+                      {{ requester.hostel_name }}{% if requester.block %} · {{ requester.block }}{% endif %}
+                      {% if can_see_room_no(me, requester) %}
+                        <span style="color: var(--amber); font-weight: 700;"> · 🚪 Room {{ requester.room_no }}</span>
+                      {% else %}
+                        <span> · 🔒 Room confidential</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Request Title & Badges -->
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 0.4rem;">
+                  <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.3;">
+                    Looking for: {{ req.name }}
+                  </h4>
+                </div>
+
+                <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 0.6rem;">
+                  <span class="badge badge-muted">{{ categories.get(req.category, '📦') }} {{ req.category }}</span>
+                  {% if req.urgency == 'urgent' %}
+                    <span class="badge" style="background: rgba(255, 90, 95, 0.15); color: #ff5a5f; border: 1px solid rgba(255, 90, 95, 0.3);">
+                      🚨 Urgent
+                    </span>
+                  {% elif req.urgency == 'tonight' %}
+                    <span class="badge badge-amber">🌙 Tonight</span>
+                  {% else %}
+                    <span class="badge badge-muted">📦 Anytime</span>
+                  {% endif %}
+                </div>
+
+                <!-- Price offer / Borrow info -->
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--amber-bright); margin-bottom: 0.4rem;">
+                  {% if req.price_offer and req.price_offer > 0 %}
+                    💰 Willing to pay: ₹{{ req.price_offer|int }}
+                  {% else %}
+                    🤝 Looking to borrow / free
+                  {% endif %}
+                </div>
+
+                <!-- Note if any -->
+                {% if req.note %}
+                  <div class="request-note-box">
+                    "{{ req.note }}"
+                  </div>
+                {% endif %}
+
+                <div style="font-size: 0.72rem; color: var(--text-faint); margin-top: 0.6rem;">
+                  Posted {{ req.created_at.strftime('%I:%M %p') }}
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                {% if requester.id != me.id %}
+                  <!-- I Have This / Help Button -->
+                  <a href="{{ url_for('chat_detail', target_id=requester.id, request_item=req.name) }}"
+                     class="btn btn-primary btn-full btn-sm" style="font-size: 0.82rem; padding: 0.55rem;">
+                    💬 I Have This / Help {{ requester.name.split()[0] }} →
+                  </a>
+                {% else %}
+                  <!-- Requester management: Mark Fulfilled / Delete -->
+                  <div style="display: flex; gap: 6px;">
+                    <form method="post" action="{{ url_for('fulfill_request', req_id=req.id) }}" style="flex: 1;">
+                      <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; font-size: 0.75rem; color: #34d399;">
+                        ✓ Got It / Fulfilled
+                      </button>
+                    </form>
+                    <form method="post" action="{{ url_for('delete_request', req_id=req.id) }}"
+                          onsubmit="return confirm('Delete this request?')">
+                      <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+          <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">📢</div>
+          <h3 style="font-size: 1.15rem; font-weight: 700;">No active requests right now</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; max-width: 420px; margin-left: auto; margin-right: auto;">
+            Need snacks, medicine, hygiene essentials, or a charger tonight? Post a request using the sidebar on the right!
+          </p>
+        </div>
+      {% endif %}
+
+    <!-- ══════════════════════════════════════════
+         TAB 1: AVAILABLE ON SHELF (DEFAULT)
+         ══════════════════════════════════════════ -->
+    {% else %}
+
+      {% if searching %}
+        <!-- Results notice -->
+        <div class="results-notice">
+          <span>
+            {% if results %}
+              <strong>{{ results|length }}</strong> available item{% if results|length != 1 %}s{% endif %} found
+              {% if q %}for "<strong>{{ q }}</strong>"{% endif %}
+              {% if category %}in <strong>{{ categories[category] }} {{ category }}</strong>{% endif %}
+            {% else %}
+              No items available right now
+              {% if q %}for "<strong>{{ q }}</strong>"{% endif %}
+            {% endif %}
+            &mdash; {{ me.hostel_name }}
+          </span>
+          <a href="{{ url_for('dashboard', tab=tab) }}" class="text-sm text-muted">✕ Clear search</a>
+        </div>
+
+        {% if other_hostel_has %}
+          <div class="other-hostel-banner" role="note">
+            <span>✨</span>
+            <span>{{ other_hostel_name }} has this listed, but you can only exchange within your hostel.</span>
+          </div>
+        {% endif %}
+
+        {% if results %}
+          <div class="item-grid">
+            {% for item, owner in results %}
+              <div class="item-card">
+                <div>
+                  <div class="item-top">
+                    <div class="item-emoji">{{ categories.get(item.category, '📦') }}</div>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                      <span class="badge badge-muted">{{ item.category }}</span>
+                      {% if item.condition == 'new_packed' %}
+                        <span class="badge badge-amber">🏷️ New</span>
+                      {% elif item.condition == 'used' %}
+                        <span class="badge badge-muted">♻️ Used</span>
+                      {% elif item.condition == 'free' %}
+                        <span class="badge badge-amber" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">🎁 Free</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="item-name">{{ item.name }}</div>
+
+                  <div class="item-price">
+                    {{ fmt_price(item) }}
+                  </div>
+
+                  <div class="item-meta">
+                    <span>📍 {{ owner.hostel_name }}{% if owner.block %}, {{ owner.block }}{% endif %}{% if can_see_room_no(me, owner) %} · 🚪 Room {{ owner.room_no }}{% endif %}</span>
+                    {% if item.condition != 'free' %}
+                      <span>💳 Accepts: 
+                        {% if item.payment_mode == 'upi' %}📱 UPI
+                        {% elif item.payment_mode == 'cash' %}💵 Cash
+                        {% else %}📱 UPI & 💵 Cash{% endif %}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-top: 0.9rem;">
+                  <a href="{{ url_for('chat_detail', target_id=owner.id, item_id=item.id) }}"
+                     class="btn btn-ghost btn-sm" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; justify-content: center; gap: 4px;">
+                    💬 Chat
+                  </a>
+                  <a href="{{ url_for('profile', user_id=owner.id) }}"
+                     class="btn btn-primary btn-sm" style="flex: 1.2; padding: 0.5rem; font-size: 0.8rem; justify-content: center; gap: 4px;">
+                    Shelf & Pay →
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+            <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">📭</div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">No items found on shelf</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+              Can't find it? Switch to the <strong>"Who's Looking for What"</strong> tab and post a request!
+            </p>
+          </div>
+        {% endif %}
+
+      {% else %}
+
+        <p style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+          Available Recently on Shelf · {{ me.hostel_name }}
+        </p>
+
+        {% if recent %}
+          <div class="item-grid">
+            {% for item, owner in recent %}
+              <div class="item-card">
+                <div>
+                  <div class="item-top">
+                    <div class="item-emoji">{{ categories.get(item.category, '📦') }}</div>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                      <span class="badge badge-muted">{{ item.category }}</span>
+                      {% if item.condition == 'new_packed' %}
+                        <span class="badge badge-amber">🏷️ New</span>
+                      {% elif item.condition == 'used' %}
+                        <span class="badge badge-muted">♻️ Used</span>
+                      {% elif item.condition == 'free' %}
+                        <span class="badge badge-amber" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">🎁 Free</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="item-name">{{ item.name }}</div>
+
+                  <div class="item-price">
+                    {{ fmt_price(item) }}
+                  </div>
+
+                  <div class="item-meta">
+                    <span>📍 {{ owner.hostel_name }}{% if owner.block %}, {{ owner.block }}{% endif %}{% if can_see_room_no(me, owner) %} · 🚪 Room {{ owner.room_no }}{% endif %}</span>
+                    {% if item.condition != 'free' %}
+                      <span>💳 {% if item.payment_mode == 'upi' %}📱 UPI{% elif item.payment_mode == 'cash' %}💵 Cash{% else %}📱 UPI & 💵 Cash{% endif %}</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-top: 0.9rem;">
+                  <a href="{{ url_for('chat_detail', target_id=owner.id, item_id=item.id) }}"
+                     class="btn btn-ghost btn-sm" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; justify-content: center; gap: 4px;">
+                    💬 Chat
+                  </a>
+                  <a href="{{ url_for('profile', user_id=owner.id) }}"
+                     class="btn btn-primary btn-sm" style="flex: 1.2; padding: 0.5rem; font-size: 0.8rem; justify-content: center; gap: 4px;">
+                    Shelf & Pay →
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+            <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">🌙</div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">The shelf is quiet right now</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+              Be the first to share, or check <strong>"Who's Looking for What"</strong> to help a friend!
+            </p>
+          </div>
+        {% endif %}
+
+      {% endif %}
+
+    {% endif %}
+
+  </main>
+
+  <!-- RIGHT: Sidebar (Post Request / Add Item / Shelf Management) -->
+  <aside class="dash-sidebar">
+
+    <!-- Card 1: Post a Request (I need something) -->
+    <div class="card" style="border-top: 3px solid var(--purple-accent, #7c5cff);">
+      <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
+        <span>📢</span> Need something tonight?
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Ask fellow students in {{ me.hostel_name }}. Friends who have it can reach out to you!
+      </p>
+
+      <form class="add-form" method="post" action="{{ url_for('add_request') }}">
+        <div class="field">
+          <label class="field-label" for="req-name">What do you need?</label>
+          <input id="req-name" type="text" name="name"
+                 placeholder="e.g. Type-C charger, Paracetamol, scissors…"
+                 maxlength="100" required autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="req-cat">Category</label>
+          <select id="req-cat" name="category">
+            {% for cat, emoji in categories.items() %}
+              <option value="{{ cat }}">{{ emoji }} {{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="req-urgency">Urgency</label>
+          <select id="req-urgency" name="urgency">
+            <option value="tonight">🌙 Tonight</option>
+            <option value="urgent">🚨 Urgent (Need ASAP)</option>
+            <option value="anytime">📦 Anytime this week</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="req-price">
+            <span>Willing to Pay (₹ INR)</span>
+            <span class="field-opt">0 for free/borrow</span>
+          </label>
+          <input id="req-price" type="number" name="price_offer" min="0" step="1"
+                 placeholder="e.g. 25" value="0">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="req-note">
+            <span>Note / Details</span>
+            <span class="field-opt">Optional</span>
+          </label>
+          <input id="req-note" type="text" name="note"
+                 placeholder="e.g. Need for 30 mins to charge phone" maxlength="200">
+        </div>
+
+        <button class="btn btn-primary btn-full" type="submit" style="background: linear-gradient(135deg, #a78bfa, #7c5cff); color: #fff;">
+          Post Request 📢
+        </button>
+      </form>
+    </div>
+
+    <!-- Card 2: Add Item to Shelf (I have something) -->
+    <div class="card">
+      <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
+        <span>✨</span> Have something to share?
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Put an item on the shelf for money, barter, or for free.
+      </p>
+
+      <form class="add-form" method="post" action="{{ url_for('add_item') }}">
+        <div class="field">
+          <label class="field-label" for="item-name">Item Name</label>
+          <input id="item-name" type="text" name="name"
+                 placeholder="e.g. Maggi 2-pack, Dettol, Notebook…"
+                 maxlength="80" required autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="item-cat">Category</label>
+          <select id="item-cat" name="category">
+            {% for cat, emoji in categories.items() %}
+              <option value="{{ cat }}">{{ emoji }} {{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="item-cond">Condition</label>
+          <select id="item-cond" name="condition" onchange="handleConditionChange(this.value)">
+            <option value="used">♻️ Used (Set Price or Negotiable)</option>
+            <option value="new_packed">🏷️ New / Packed (Must set price)</option>
+            <option value="free">🎁 Free / Giving Away</option>
+          </select>
+        </div>
+
+        <div class="field" id="priceFieldContainer">
+          <label class="field-label" for="item-price">
+            <span>Price (₹ INR)</span>
+            <span class="field-opt">0 for free/negotiable</span>
+          </label>
+          <input id="item-price" type="number" name="price" min="0" step="1"
+                 placeholder="e.g. 25" value="0">
+        </div>
+
+        <div class="field" id="paymentModeContainer">
+          <label class="field-label" for="item-paymode">Accepted Payment</label>
+          <select id="item-paymode" name="payment_mode">
+            <option value="both">🤝 Both UPI & Cash</option>
+            <option value="upi">📱 UPI (GPay/PhonePe/Paytm)</option>
+            <option value="cash">💵 Cash on Handover</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-full" type="submit">
+          Put on Shelf ✓
+        </button>
+      </form>
+    </div>
+
+    <!-- Card 3: Your Shelf (Items + Requests Management) -->
+    <div class="card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text);">
+          Your Active Listings & Requests
+        </h3>
+      </div>
+
+      <!-- User's requests -->
+      {% if my_requests %}
+        <p style="font-size: 0.76rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px;">
+          Your Requests ({{ my_requests|length }})
+        </p>
+        <div class="my-items-list" style="margin-bottom: 1.25rem;">
+          {% for req in my_requests %}
+            <div class="my-item-row"{% if req.is_fulfilled %} style="opacity: 0.6;"{% endif %}>
+              <div class="my-item-top">
+                <span class="my-item-name">📢 {{ req.name }}</span>
+                {% if req.is_fulfilled %}
+                  <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34d399; font-size: 0.7rem;">✓ Got it</span>
+                {% else %}
+                  <span class="badge badge-amber" style="font-size: 0.7rem;">Active</span>
+                {% endif %}
+              </div>
+              <div class="my-item-actions">
+                {% if not req.is_fulfilled %}
+                  <form method="post" action="{{ url_for('fulfill_request', req_id=req.id) }}" style="flex: 1;">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; font-size: 0.75rem; color: #34d399;">
+                      ✓ Got it
+                    </button>
+                  </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('delete_request', req_id=req.id) }}"
+                      onsubmit="return confirm('Delete request for {{ req.name }}?')">
+                  <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">
+                    🗑️
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- User's items on shelf -->
+      <p style="font-size: 0.76rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px;">
+        Your Shelf Items ({{ my_items|length }})
+      </p>
+      {% if my_items %}
+        <div class="my-items-list">
+          {% for item in my_items %}
+            <div class="my-item-row"{% if item.is_taken %} style="opacity: 0.6;"{% endif %}>
+              <div class="my-item-top">
+                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <span>{{ categories.get(item.category, '📦') }}</span>
+                  <span class="my-item-name">{{ item.name }}</span>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--amber);">
+                  {{ fmt_price(item) }}
+                </span>
+              </div>
+
+              <div class="my-item-actions">
+                {% if not item.is_taken %}
+                  <form method="post" action="{{ url_for('mark_taken', item_id=item.id) }}" style="flex: 1;">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; font-size: 0.75rem; padding: 4px 8px; color: #34d399;" title="Mark this item as given to someone">
+                      ✓ Mark Given
+                    </button>
+                  </form>
+                {% else %}
+                  <form method="post" action="{{ url_for('mark_available', item_id=item.id) }}" style="flex: 1;">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; font-size: 0.75rem; padding: 4px 8px;" title="Make this item available again">
+                      ↩ Relist
+                    </button>
+                  </form>
+                {% endif %}
+
+                <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}"
+                      onsubmit="return confirm('Delete {{ item.name }} from your shelf?')">
+                  <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 0.75rem;" title="Delete permanently">
+                    🗑️
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="font-size: 0.82rem; color: var(--text-muted);">
+          No items on shelf yet.
+        </p>
+      {% endif %}
+    </div>
+
+  </aside>
+</div>
+
+<script>
+  function handleConditionChange(val) {
+    const priceField = document.getElementById('item-price');
+    const payModeContainer = document.getElementById('paymentModeContainer');
+    if (val === 'free') {
+      priceField.value = 0;
+      priceField.disabled = true;
+      payModeContainer.style.opacity = '0.4';
+      payModeContainer.style.pointerEvents = 'none';
+    } else {
+      priceField.disabled = false;
+      payModeContainer.style.opacity = '1';
+      payModeContainer.style.pointerEvents = 'auto';
+      if (val === 'new_packed' && (!priceField.value || priceField.value == '0')) {
+        priceField.value = 30;
+      }
+    }
+  }
+</script>
+{% endblock %}
