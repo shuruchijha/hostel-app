@@ -8,6 +8,8 @@ from flask import (Flask, abort, flash, redirect, render_template,
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
+viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1">
+
 app = Flask(__name__, static_folder="static")
 app.secret_key = "change-this-to-a-long-random-string-in-production"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hostel3.db"

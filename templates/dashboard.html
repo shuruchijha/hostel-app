@@ -3,95 +3,122 @@
 
 {% block head %}
 <style>
-  /* ── SEARCH BAR ── */
+  /* ── SEARCH & CATEGORIES ── */
   .search-wrap {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 1rem;
     position: sticky;
     top: 52px;
     z-index: 90;
+    width: 100%;
+    box-sizing: border-box;
   }
-  .search-inner {
+  .search-inner-box {
     max-width: 1140px;
     margin: 0 auto;
     display: flex;
-    gap: .6rem;
+    flex-direction: column;
+    gap: 0.55rem;
+    width: 100%;
+  }
+  .search-form-row {
+    display: flex;
+    gap: 0.5rem;
     align-items: center;
-    flex-wrap: nowrap;
+    width: 100%;
   }
   .search-field {
     flex: 1;
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: .4rem;
+    gap: 0.45rem;
     background: var(--surface2);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 0 .8rem;
+    padding: 0 0.85rem;
+    height: 42px;
     transition: var(--transition);
   }
   .search-field:focus-within {
     border-color: var(--amber);
     box-shadow: 0 0 0 3px var(--amber-glow);
   }
-  .search-field .icon { color: var(--text-faint); font-size: 1rem; flex-shrink: 0; }
+  .search-field .icon {
+    color: var(--text-faint);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
   .search-field input {
     background: none;
     border: none;
-    padding: .6rem 0;
+    padding: 0;
     flex: 1;
     min-width: 0;
+    height: 100%;
+    color: var(--text);
   }
-  .search-field input:focus { box-shadow: none; }
-
-  /* Horizontal scrolling category pills on mobile */
-  .cat-pills {
-    display: flex;
-    gap: .4rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    flex-shrink: 0;
-    max-width: 100%;
-    padding-bottom: 2px;
-  }
-  .cat-pills::-webkit-scrollbar { display: none; }
-  .cat-pill {
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
-    border-radius: 999px;
+  .search-field input:focus { box-shadow: none; outline: none; }
+  .search-clear-btn {
     color: var(--text-muted);
-    font-size: .78rem;
-    font-weight: 600;
-    padding: .3rem .85rem;
-    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 6px;
     text-decoration: none;
-    transition: var(--transition);
-    white-space: nowrap;
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
   }
-  .cat-pill:hover, .cat-pill.active {
-    background: var(--amber);
-    border-color: var(--amber);
-    color: #0f0e13;
-  }
+  .search-clear-btn:hover { color: var(--text); }
   .search-btn {
     background: var(--amber);
     border: none;
     border-radius: var(--radius-sm);
     color: #0f0e13;
-    font-size: .88rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    padding: .6rem 1rem;
+    padding: 0 1.1rem;
+    height: 42px;
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
     flex-shrink: 0;
-    min-height: 40px;
   }
   .search-btn:hover { opacity: .88; }
+
+  /* Horizontal Category Scroll Bar */
+  .cat-pills-row {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+    padding: 2px 0 2px;
+  }
+  .cat-pills-row::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .cat-pill:hover, .cat-pill.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #0f0e13 !important;
+    box-shadow: 0 2px 10px rgba(245, 166, 35, 0.3);
+  }
 
   /* ── MAIN DASHBOARD LAYOUT ── */
   .dash {
@@ -316,9 +343,12 @@
 
   /* ── MOBILE DASHBOARD OVERRIDES ── */
   @media (max-width: 768px) {
-    .search-wrap { top: 52px; padding: 0.6rem 0.75rem; }
-    .search-inner { flex-wrap: nowrap; gap: 0.5rem; }
+    .search-wrap { top: 52px; padding: 0.5rem 0.75rem; }
+    .search-field { height: 38px; }
+    .search-btn { height: 38px; padding: 0 0.85rem; font-size: 0.82rem; }
     .search-field input { font-size: 16px !important; }
+    .cat-pills-row { gap: 0.35rem; }
+    .cat-pill { font-size: 0.74rem; padding: 0.28rem 0.7rem; }
     .item-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .item-card { padding: 0.9rem; }
     .item-emoji { font-size: 1.5rem; }
@@ -337,23 +367,35 @@
 
 {% block content %}
 
-<!-- ───── SEARCH BAR ───── -->
+<!-- ───── SEARCH & CATEGORY BAR ───── -->
 <div class="search-wrap">
-  <form class="search-inner" method="get" action="{{ url_for('dashboard') }}">
-    <input type="hidden" name="tab" value="{{ tab }}">
+  <div class="search-inner-box">
     
-    <div class="search-field">
-      <span class="icon">🔍</span>
-      <input type="search" name="q" value="{{ q }}"
-             placeholder="Search {{ 'requests…' if tab == 'requests' else 'the shelf…' }} Maggi, charger, pad, medicine…"
-             aria-label="Search items">
-    </div>
+    <!-- Row 1: Search Form (Input + Action Button) -->
+    <form class="search-form-row" method="get" action="{{ url_for('dashboard') }}">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      {% if category %}
+        <input type="hidden" name="category" value="{{ category }}">
+      {% endif %}
+      
+      <div class="search-field">
+        <span class="icon">🔍</span>
+        <input type="search" name="q" value="{{ q }}"
+               placeholder="Search {{ 'requests…' if tab == 'requests' else 'the shelf…' }} Maggi, charger, pad…"
+               aria-label="Search items">
+        {% if q %}
+          <a href="{{ url_for('dashboard', tab=tab, category=category) }}" class="search-clear-btn" title="Clear">✕</a>
+        {% endif %}
+      </div>
 
-    <!-- Category Pills -->
-    <div class="cat-pills" role="list">
+      <button class="search-btn" type="submit">Search</button>
+    </form>
+
+    <!-- Row 2: Category Pills (Smooth Horizontal Touch Scroll) -->
+    <div class="cat-pills-row" role="list">
       <a href="{{ url_for('dashboard', q=q, tab=tab) }}"
          class="cat-pill {{ 'active' if not category }}"
-         role="listitem">All</a>
+         role="listitem">✨ All</a>
       {% for cat, emoji in categories.items() %}
         <a href="{{ url_for('dashboard', q=q, category=cat, tab=tab) }}"
            class="cat-pill {{ 'active' if category == cat }}"
@@ -361,8 +403,7 @@
       {% endfor %}
     </div>
 
-    <button class="search-btn" type="submit">Search</button>
-  </form>
+  </div>
 </div>
 
 <!-- ───── MAIN CONTENT & SIDEBAR ───── -->

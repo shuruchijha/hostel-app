@@ -274,3 +274,25 @@ a:hover { text-decoration: underline; }
   .auth { grid-template-columns: 1.1fr 1fr; align-items: center; gap: 48px; padding-top: 40px; }
   .share-form { grid-template-columns: 1fr 180px auto; }
 }
+
+html { -webkit-text-size-adjust: 100%; }
+*, *::before, *::after { box-sizing: border-box; }
+
+body { min-height: 100dvh; overflow-x: hidden; }
+img, video, svg { max-width: 100%; height: auto; }
+
+/* Prevents iOS zoom-on-focus and gives comfortable tap targets */
+input:not([type="checkbox"]):not([type="radio"]),
+select, textarea { font-size: 16px; min-height: 48px; }
+button, .btn { min-height: 44px; }
+
+/* Respect phone notches and home bars */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 480px) {
+  main, .container { padding-left: 16px; padding-right: 16px; }
+}
